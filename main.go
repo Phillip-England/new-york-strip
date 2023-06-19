@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"htmx-cares/src/components"
+	"htmx-cares/src/core"
 	"net/http"
 	"os"
 
@@ -95,6 +97,17 @@ func main() {
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", html)
 
+	})
+
+
+	// ------------------------
+	// TESTING GOSNAP
+	// ------------------------
+
+	router.GET("/test", func(c *gin.Context) {
+		snap := core.NewGoSnap()
+		components.LoginForm(&snap)
+		c.Data(200, "text/html; charset=utf-8", snap.GetHtmlBytes())
 	})
 
 	// ------------------------
