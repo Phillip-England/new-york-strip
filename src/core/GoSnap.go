@@ -8,7 +8,6 @@ import (
 
 type GoSnap struct {
 	Html string
-	HtmlBytes []byte
 }
 
 func NewGoSnap() (GoSnap) {

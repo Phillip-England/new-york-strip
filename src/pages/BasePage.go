@@ -1,6 +1,6 @@
 package pages
 
-func BasePage() (string) {
+func BasePage(title string) (string) {
 	page := `
 		<!DOCTYPE html>
 		<html lang="en">
@@ -8,7 +8,7 @@ func BasePage() (string) {
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<link rel="stylesheet" href="/static/output.css" />
-			<title></title>
+			<title>`+ title +`</title>
 		</head>
 		<body>
 			<div id="go-root"></div>
