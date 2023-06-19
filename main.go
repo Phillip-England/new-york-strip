@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"htmx-cares/src/components"
 	"htmx-cares/src/core"
+	"htmx-cares/src/pages"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -33,16 +33,6 @@ func main() {
 	// -----------------------------
 	// PAGES
 	// -----------------------------
-
-	// signup page
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(200, "index.html", nil)
-	})
-
-	// login page
-	router.GET("/signup", func(c *gin.Context) {
-		c.HTML(200, "page_signup.html", nil)
-	})
 
 	// location page
 	router.GET("/locations", func(c *gin.Context) {
@@ -72,30 +62,26 @@ func main() {
 	// this navigation will read the http-cookies along with the request
 	// these cookies will determine which navigation menu is rendered
 	router.POST("/components/open_navigation", func(c *gin.Context) {
-
-		// if the user is not authenticated, sent back the guest naviation
-		html, err := os.ReadFile("templates/nav_guest_opened.html")
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Failed to read HTML file")
-			return
-		}
-		c.Data(http.StatusOK, "text/html; charset=utf-8", html)
-
+		snap := core.NewGoSnap()
+		snap.HtmlConsume(components.GuestNavOpened())
+		snap.HtmlServe(c)
 	})
 
 	// close the navigation
 	// this navigation will read the http-cookies along with the request
 	// these cookies will determine which nvaigtation menu is rendered
 	router.POST("/components/close_navigation", func(c *gin.Context) {
-
+		snap := core.NewGoSnap()
 		// if the user is not authenticated, send back the closed guest navigation
-		html, err := os.ReadFile("templates/nav_guest_closed.html")
-		if err != nil {
-			// Handle the error if the file couldn't be read
-			c.String(http.StatusInternalServerError, "Failed to read HTML file")
-			return
-		}
-		c.Data(http.StatusOK, "text/html; charset=utf-8", html)
+		snap.HtmlConsume(components.GuestNavClosed())
+		snap.HtmlServe(c)
+		// html, err := os.ReadFile("templates/nav_guest_closed.html")
+		// if err != nil {
+		// 	// Handle the error if the file couldn't be read
+		// 	c.String(http.StatusInternalServerError, "Failed to read HTML file")
+		// 	return
+		// }
+		// c.Data(http.StatusOK, "text/html; charset=utf-8", html)
 
 	})
 
@@ -104,10 +90,21 @@ func main() {
 	// TESTING GOSNAP
 	// ------------------------
 
-	router.GET("/test", func(c *gin.Context) {
+	// login page
+	router.GET("/", func(c *gin.Context) {
 		snap := core.NewGoSnap()
-		components.LoginForm(&snap)
-		c.Data(200, "text/html; charset=utf-8", snap.GetHtmlBytes())
+		snap.HtmlConsume(components.GuestNavClosed())
+		snap.HtmlConsume(components.LoginForm())
+		snap.HtmlInject(pages.BasePage())
+		snap.HtmlServe(c)
+	})
+
+	router.GET("/signup", func(c *gin.Context) {
+		snap := core.NewGoSnap()
+		snap.HtmlConsume(components.GuestNavClosed())
+		snap.HtmlConsume(components.SignupForm())
+		snap.HtmlInject(pages.BasePage())
+		snap.HtmlServe(c)
 	})
 
 	// ------------------------
