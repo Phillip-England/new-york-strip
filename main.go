@@ -6,11 +6,11 @@ import (
 	"htmx-cares/src/core"
 	"htmx-cares/src/models"
 	"htmx-cares/src/pages"
-	"htmx-cares/src/templates"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -21,9 +21,9 @@ func main() {
 
 	// config
 	godotenv.Load()
-	router := gin.Default()
-	// router.LoadHTMLGlob("templates/*")
-	router.Static("/static", "./static")
+	r := gin.Default()
+	// r.LoadHTMLGlob("templates/*")
+	r.Static("/static", "./static")
 
 	// mongodb
 	mongoStore, err := core.NewMongoStore()
@@ -37,24 +37,51 @@ func main() {
 	// -----------------------------
 
 	// logging in our user
-	router.POST("/login", func(c *gin.Context) {
-		snap := core.NewGoSnap()
+	r.POST("/", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		userModel := models.NewUserModel(c.PostForm("email"), c.PostForm("password"))
+		httpErr := userModel.Find(mongoStore.UserCollection)
+		if httpErr != nil {
+			if httpErr.Code == 500 {
+				pages.ServerErrorPage(&b)
+				b.Serve(c)
+				return
+			}
+			if httpErr.Code == 400 {
+				pages.LoginPage(&b, httpErr.Message)
+				b.Serve(c)
+				return
+			}
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(userModel.Password), []byte(c.PostForm("password"))); err != nil {
+			pages.LoginPage(&b, "invalid credentials")
+			b.Serve(c)
+			return
+		}
+
+		pages.LoginPage(&b, "")
+		b.Serve(c)
+	})
+
+	// signing up our user
+	r.POST("/signup", func(c *gin.Context) {
+		b := core.NewGoBuild()
 		userModel := models.NewUserModel(c.PostForm("email"), c.PostForm("password"))
 		httpErr := userModel.Insert(mongoStore.UserCollection)
 		if httpErr != nil {
 			if httpErr.Code == 500 {
-				c.Request.URL.Path = "/"
-				router.HandleContext(c)
+				pages.ServerErrorPage(&b)
+				b.Serve(c)
 				return
 			}
 			if httpErr.Code == 400 {
-				pages.LoginPage(&snap, httpErr.Message)
-				snap.HtmlServe(c)
+				pages.SignupPage(&b, httpErr.Message)
+				b.Serve(c)
 				return
 			}
 		}
-		c.Request.URL.Path = "/app"
-		router.HandleContext(c)
+		pages.LoginPage(&b, "")
+		b.Serve(c)
 	})
 
 	// -----------------------------
@@ -62,17 +89,23 @@ func main() {
 	// -----------------------------
 
 	// opening our navigation
-	router.POST("/htmx/open_guest_navigation", func(c *gin.Context) {
-		snap := core.NewGoSnap()
-		snap.HtmlConsume(components.GuestNavOpened())
-		snap.HtmlServe(c)
+	r.POST("/htmx/open_guest_navigation", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		b.Consume(components.GuestNavOpened())
+		b.Serve(c)
 	})
 
 	// close the navigation
-	router.POST("/htmx/close_guest_navigation", func(c *gin.Context) {
-		snap := core.NewGoSnap()
-		snap.HtmlConsume(components.GuestNavClosed())
-		snap.HtmlServe(c)
+	r.POST("/htmx/close_guest_navigation", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		b.Consume(components.GuestNavClosed())
+		b.Serve(c)
+	})
+
+	// hiding an element
+	r.POST("/htmx/hide", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		b.Serve(c)
 	})
 
 
@@ -81,26 +114,24 @@ func main() {
 	// ------------------------
 
 	// login page
-	router.GET("/", func(c *gin.Context) {
-		snap := core.NewGoSnap()
-		pages.LoginPage(&snap, "")
-		snap.HtmlServe(c)
+	r.GET("/", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		pages.LoginPage(&b, "")
+		b.Serve(c)
 	})
 
 	// sign up page
-	router.GET("/signup", func(c *gin.Context) {
-		snap := core.NewGoSnap()
-		snap.HtmlConsume(components.GuestNavClosed())
-		snap.HtmlConsume(components.SignupForm())
-		snap.HtmlInject(templates.BaseTemplate("Sign Up"))
-		snap.HtmlServe(c)
+	r.GET("/signup", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		pages.SignupPage(&b, "")
+		b.Serve(c)
 	})
 
 	// application page
-	router.GET("/app", func(c *gin.Context) {
-		snap := core.NewGoSnap()
-		snap.HtmlConsume(`<p>testing</p>`)
-		snap.HtmlServe(c)
+	r.GET("/app", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		b.Consume(`<p>testing</p>`)
+		b.Serve(c)
 	})
 
 	// ------------------------
@@ -108,7 +139,7 @@ func main() {
 	// ------------------------
 
 	// running
-	router.Run()
+	r.Run()
 
 
 }

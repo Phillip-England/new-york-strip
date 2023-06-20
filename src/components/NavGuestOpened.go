@@ -1,26 +1,5 @@
 package components
 
-func GuestNavClosed() (string) {
-	html := `
-	<div id="nav-container">
-
-		<!-- navbar -->
-		<div id="nav-guest" class="bg-white fixed h-16 w-screen top-0 left-0 p-4 border-b flex flex-row justify-between z-20">
-			<h1 class="text-xl font-serif">Chick-fil-A Tools</h1>
-			<div class="flex items-center">
-				<i class="fa-bars fa-solid fa-lg" hx-post="/htmx/open_guest_navigation" hx-trigger="click" hx-target="#nav-container", hx-swap="outerHTML"></i>
-			</div>
-		</div>
-		
-		<!-- spacer -->
-		<div class="h-16"></div>
-
-	</div>
-	`
-	return html
-}
-
-
 func GuestNavOpened() (string) {
 	html := `
 		<div id="nav-container">
@@ -43,10 +22,10 @@ func GuestNavOpened() (string) {
 			<nav class="fixed top-16 left-0 w-3/5 h-screen bg-white z-20">
 				<ul class="flex flex-col">
 					<a class="border p-4" href="/signup">
-						<li class="font-serif">Signup</li>
+						<li class="font-serif">Sign Up</li>
 					</a>
 					<a class="border p-4" href="/">
-						<li class="font-serif">Login</li>
+						<li class="font-serif">Log In</li>
 					</a>
 				</ul>
 			</nav>

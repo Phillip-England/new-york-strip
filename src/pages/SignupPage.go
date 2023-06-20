@@ -6,8 +6,8 @@ import (
 	"htmx-cares/src/templates"
 )
 
-func LoginPage(b *core.GoBuild, formErr string) {
+func SignupPage(b *core.GoBuild, formErr string) {
 	b.Consume(components.GuestNavClosed())
-	b.Consume(components.LoginForm(formErr))
-	b.Inject(templates.BaseTemplate("Log In"))
+	b.Consume(components.SignupForm(formErr))
+	b.Inject(templates.BaseTemplate("Sign Up"))
 }
