@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"htmx-cares/src/core"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,20 +24,19 @@ func NewUserModel(email string, password string) (*UserModel) {
 	}
 }
 
-func (model *UserModel) Insert(collection *mongo.Collection) (*core.HttpErr) {
+func (m *UserModel) Insert(userCollection *mongo.Collection) (*core.HttpErr) {
 	var userExists UserModel
-	err := collection.FindOne(context.Background(), bson.D{
-		{Key: "email", Value:model.Email},
+	err := userCollection.FindOne(context.Background(), bson.D{
+		{Key: "email", Value:m.Email},
 	}).Decode(&userExists)
 	if err == nil && err != mongo.ErrNoDocuments {
 		return core.NewHttpErr(0, 400, "user already exists")
 	}
-	result, err := collection.InsertOne(context.Background(), bson.D{
-		{Key: "email", Value: model.Email},
-		{Key: "password", Value: model.Password},
+	result, err := userCollection.InsertOne(context.Background(), bson.D{
+		{Key: "email", Value: m.Email},
+		{Key: "password", Value: m.Password},
 	})
 	if err != nil {
-		fmt.Println(err)
 		return core.NewHttpErr(1, 500, "internal server error")
 	}
 	stringId := result.InsertedID
@@ -46,14 +44,14 @@ func (model *UserModel) Insert(collection *mongo.Collection) (*core.HttpErr) {
 	if !ok {
 		return core.NewHttpErr(2, 500, "internal server error")
 	}
-	model.Id = objectId
+	m.Id = objectId
 	return nil
 }
 
-func (model *UserModel) Find(collection *mongo.Collection) (*core.HttpErr) {
-	err := collection.FindOne(context.Background(), bson.D{{
-		Key: "email", Value: model.Email,
-	}}).Decode(model)
+func (m *UserModel) Find(userCollection *mongo.Collection) (*core.HttpErr) {
+	err := userCollection.FindOne(context.Background(), bson.D{{
+		Key: "email", Value: m.Email,
+	}}).Decode(m)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return core.NewHttpErr(0, 400, "invalid credentials")

@@ -7,6 +7,7 @@ import (
 	"htmx-cares/src/models"
 	"htmx-cares/src/pages"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -58,7 +59,25 @@ func main() {
 			b.Serve(c)
 			return
 		}
-
+		sessionModel := models.NewSessionModel(userModel.Id)
+		httpErr = sessionModel.ClearUserSessions(mongoStore.SessionCollection)
+		if httpErr != nil {
+			if httpErr.Code == 500 {
+				pages.ServerErrorPage(&b)
+				b.Serve(c)
+				return
+			}
+		}
+		httpErr = sessionModel.Insert(mongoStore.SessionCollection)
+		if httpErr != nil {
+			if httpErr.Code == 500 {
+				pages.ServerErrorPage(&b)
+				b.Serve(c)
+				return
+			}
+		}
+		sessionToken := sessionModel.Id.Hex()
+		c.SetCookie("session-token", sessionToken, 86400, "/", os.Getenv("DOMAIN"), true, true)
 		pages.LoginPage(&b, "")
 		b.Serve(c)
 	})
