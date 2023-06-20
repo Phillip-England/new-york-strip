@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"htmx-cares/src/components"
 	"htmx-cares/src/core"
 	"htmx-cares/src/models"
@@ -54,8 +53,8 @@ func main() {
 				return
 			}
 		}
-		fmt.Println(userModel)
-		c.Redirect(303, "/app")
+		c.Request.URL.Path = "/app"
+		router.HandleContext(c)
 	})
 
 	// -----------------------------

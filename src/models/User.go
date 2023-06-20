@@ -26,7 +26,7 @@ func (model *UserModel) Insert(collection *mongo.Collection) (*core.HttpErr) {
 	var userExists UserModel
 	err := collection.FindOne(context.Background(), bson.D{
 		{Key: "email", Value:model.Email},
-	}).Decode(userExists)
+	}).Decode(&userExists)
 	if err == nil && err != mongo.ErrNoDocuments {
 		return core.NewHttpErr(1, 400, "user already exists")
 	}
