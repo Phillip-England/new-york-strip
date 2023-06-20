@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"htmx-cares/src/components"
 	"htmx-cares/src/core"
+	"htmx-cares/src/models"
 	"htmx-cares/src/pages"
+	"htmx-cares/src/templates"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,11 +27,11 @@ func main() {
 	router.Static("/static", "./static")
 
 	// mongodb
-	// mongoStore, err := database.NewMongoStore()
-	// if err != nil {
-	// 	log.Fatal("failed to connect to mongo db")
-	// }
-	// defer mongoStore.Client.Disconnect(context.Background())
+	mongoStore, err := core.NewMongoStore()
+	if err != nil {
+		log.Fatal("failed to connect to mongo db")
+	}
+	defer mongoStore.Client.Disconnect(context.Background())
 
 	// -----------------------------
 	// CONTROLLERS
@@ -34,13 +39,23 @@ func main() {
 
 	// logging in our user
 	router.POST("/login", func(c *gin.Context) {
-		email := c.PostForm("email")
-		password := c.PostForm("password")
-		if email == "phillip@gmail.com" && password == "password" {
-			c.Redirect(303, "/app")
-			return
+		snap := core.NewGoSnap()
+		userModel := models.NewUserModel(c.PostForm("email"), c.PostForm("password"))
+		httpErr := userModel.Insert(mongoStore.UserCollection)
+		if httpErr != nil {
+			if httpErr.Code == 500 {
+				c.Request.URL.Path = "/"
+				router.HandleContext(c)
+				return
+			}
+			if httpErr.Code == 400 {
+				pages.LoginPage(&snap, httpErr.Message)
+				snap.HtmlServe(c)
+				return
+			}
 		}
-		c.Redirect(303, "/")
+		fmt.Println(userModel)
+		c.Redirect(303, "/app")
 	})
 
 	// -----------------------------
@@ -69,9 +84,7 @@ func main() {
 	// login page
 	router.GET("/", func(c *gin.Context) {
 		snap := core.NewGoSnap()
-		snap.HtmlConsume(components.GuestNavClosed())
-		snap.HtmlConsume(components.LoginForm())
-		snap.HtmlInject(pages.BasePage("Log In"))
+		pages.LoginPage(&snap, "")
 		snap.HtmlServe(c)
 	})
 
@@ -80,7 +93,7 @@ func main() {
 		snap := core.NewGoSnap()
 		snap.HtmlConsume(components.GuestNavClosed())
 		snap.HtmlConsume(components.SignupForm())
-		snap.HtmlInject(pages.BasePage("Sign Up"))
+		snap.HtmlInject(templates.BaseTemplate("Sign Up"))
 		snap.HtmlServe(c)
 	})
 

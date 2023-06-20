@@ -1,19 +1,21 @@
 package core
 
-type ErrServerFailure struct {
-	Message string
+import "fmt"
+
+type HttpErr struct {
 	Code int
-	Trace string
+	Message string
+	Trace int
 }
 
-func NewErrServerFailure(message string, trace string) (*ErrServerFailure) {
-	return &ErrServerFailure{
+func NewHttpErr(trace int, code int, message string) (*HttpErr) {
+	return &HttpErr{
+		Code: code,
 		Message: message,
-		Code: 500,
 		Trace: trace,
 	}
 }
 
-func (e *ErrServerFailure) Error() (string) {
-	return e.Message
+func (httpErr *HttpErr) Error() string {
+	return fmt.Sprintf("Trace: %d, Code: %d, Message: %s", httpErr.Trace, httpErr.Code, httpErr.Message)
 }

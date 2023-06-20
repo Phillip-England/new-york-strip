@@ -1,6 +1,6 @@
-package pages
+package templates
 
-func BasePage(title string) (string) {
+func BaseTemplate(title string) (string) {
 	page := `
 		<!DOCTYPE html>
 		<html lang="en">
