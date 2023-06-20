@@ -4,7 +4,7 @@ import "fmt"
 
 func LocationSelector(name string, number string) string {
 	return fmt.Sprintf(`
-		<div class="mb-4 p-4 border rounded-lg flex flex-row justify-between">
+		<a class="mb-4 p-4 border rounded-lg flex flex-row justify-between">
 			<div>
 				<h2 class="font-serif text-sm">%s</h2>
 				<p class="text-xs">%s</p>
@@ -14,6 +14,6 @@ func LocationSelector(name string, number string) string {
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
 				</svg>
 			</div>
-		</div>
+		</a>
 	`, name, number)
 }

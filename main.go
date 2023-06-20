@@ -78,7 +78,7 @@ func main() {
 		}
 		sessionToken := sessionModel.Id.Hex()
 		c.SetCookie("session-token", sessionToken, 86400, "/", os.Getenv("DOMAIN"), true, true)
-		pages.LocationPage(&b)
+		pages.LocationSelectionPage(&b)
 		b.Serve(c)
 	})
 
@@ -178,7 +178,8 @@ func main() {
 	// single location page
 	r.GET("/location", func(c *gin.Context) {
 		b := core.NewGoBuild()
-		
+		pages.LocationPage(&b, "Chick-fil-A Southroads", "03253")
+		b.Serve(c)
 	})
 
 	// ------------------------
