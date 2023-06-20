@@ -78,7 +78,7 @@ func main() {
 		}
 		sessionToken := sessionModel.Id.Hex()
 		c.SetCookie("session-token", sessionToken, 86400, "/", os.Getenv("DOMAIN"), true, true)
-		pages.LoginPage(&b, "")
+		pages.LocationPage(&b)
 		b.Serve(c)
 	})
 
@@ -103,21 +103,43 @@ func main() {
 		b.Serve(c)
 	})
 
+	// logging out our user
+	r.GET("/logout", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		c.SetCookie("session-token", "", -1, "/", os.Getenv("DOMAIN"), true, true)
+		pages.LoginPage(&b, "")
+		b.Serve(c)
+	})
+
 	// -----------------------------
 	// HTMX ACTIONS
 	// -----------------------------
 
-	// opening our navigation
+	// opening our guests navigation
 	r.POST("/htmx/open_guest_navigation", func(c *gin.Context) {
 		b := core.NewGoBuild()
 		b.Consume(components.GuestNavOpened())
 		b.Serve(c)
 	})
 
-	// close the navigation
+	// close the guests navigation
 	r.POST("/htmx/close_guest_navigation", func(c *gin.Context) {
 		b := core.NewGoBuild()
 		b.Consume(components.GuestNavClosed())
+		b.Serve(c)
+	})
+
+	// open the users navigation
+	r.POST("/htmx/open_user_navigation", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		b.Consume(components.UserNavOpened())
+		b.Serve(c)
+	})
+
+	// close the users navigation
+	r.POST("/htmx/close_user_navigation", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		b.Consume(components.UserNavClosed())
 		b.Serve(c)
 	})
 
@@ -146,11 +168,17 @@ func main() {
 		b.Serve(c)
 	})
 
-	// application page
-	r.GET("/app", func(c *gin.Context) {
+	// location selection page
+	r.GET("/locations", func(c *gin.Context) {
 		b := core.NewGoBuild()
-		b.Consume(`<p>testing</p>`)
+		pages.LocationSelectionPage(&b)
 		b.Serve(c)
+	})
+
+	// single location page
+	r.GET("/location", func(c *gin.Context) {
+		b := core.NewGoBuild()
+		
 	})
 
 	// ------------------------
